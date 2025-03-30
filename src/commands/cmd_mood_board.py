@@ -19,7 +19,7 @@ class MoodBoard(Command):
         now = datetime.datetime.now();
         last10Days = [now - datetime.timedelta(i) for i in range(0,10)]
         for i,day in enumerate(last10Days):
-            print(f'{day} ({i + 1})')
+            print(f'{day.strftime("%Y-%m-%d")} ({i + 1})')
         
         selectedDate = input('\nSelect 1 of Dates : ')
 
