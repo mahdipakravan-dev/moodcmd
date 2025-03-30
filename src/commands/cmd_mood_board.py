@@ -1,30 +1,40 @@
 from commands.parent import Command
 import datetime
+import os
+import requests
 from log_helper import LogHelper
 from auth import Auth
-import requests
-import os
 
 MOOD_API_URL = f'{os.getenv("END_POINT")}collections/moods/records'
 
 class MoodBoard(Command):
     def __init__(self):
         pass
-        
-    def formatTime(time : datetime):
-        return time.strftime("%Y_%m_%d")
+
+    @staticmethod
+    def format_time(time: datetime.datetime):
+        return time.strftime("%Y-%m-%d")
+
     def execute(self):
         LogHelper.clear()
         LogHelper.heading("List of Available DateTime Mood:")
-        now = datetime.datetime.now();
-        last10Days = [now - datetime.timedelta(i) for i in range(0,10)]
-        for i,day in enumerate(last10Days):
-            print(f'{day.strftime("%Y-%m-%d")} ({i + 1})')
-        
-        selectedDate = input('\nSelect 1 of Dates : ')
+
+        now = datetime.datetime.now()
+        last_10_days = [now - datetime.timedelta(days=i) for i in range(10)]
+
+        for i, day in enumerate(last_10_days, 1):
+            print(f'{day.strftime("%Y-%m-%d")} ({i})')
+
+        selected_date = input('\nSelect 1 of Dates: ')
+
+        # Ensure valid date selection
+        if not selected_date.isdigit() or not (1 <= int(selected_date) <= 10):
+            print("Invalid selection! Please enter a number between 1 and 10.")
+            return
+
+        selected_datetime = last_10_days[int(selected_date) - 1].strftime("%Y-%m-%d")
 
         token = Auth().token
-        user = Auth().record
         if not token:
             print("You are not logged in! Please log in first.")
             return
@@ -34,43 +44,46 @@ class MoodBoard(Command):
             "Content-Type": "application/json"
         }
 
-        selectedDateTime = last10Days[int(selectedDate) - 1].strftime("%Y-%m-%d")
-        URL = MOOD_API_URL + f"?filter=(created~'{selectedDateTime}')"
+        url = f"{MOOD_API_URL}?filter=(created~'{selected_datetime}')"
 
-        print(f"\n \nPlease Wait...")
-        print(f'We are looking for your mood chart in {selectedDateTime}...')
+        print(f"\n🔄 Please wait... Fetching mood chart for {selected_datetime}...")
 
         try:
-            response = requests.get(URL, headers=headers)
-            data = response.json()            
-            if response.status_code == 200 or response.status_code == 201:
-                LogHelper.clear()
-                LogHelper.heading(f"{selectedDateTime} Moods")
-                mood_dict = {
-                    "VeryBad" : 0,
-                    "Bad" : 0,
-                    "Poker" : 0,
-                    "Good" : 0,
-                    "VeryGood" : 0
-                }
-                for mood in data["items"]:
-                    if mood["mood"] == '1':
-                        mood_dict["VeryBad"] += 1
-                    if mood["mood"] == '2':
-                        mood_dict["Bad"] += 1
-                    if mood["mood"] == '3':
-                        mood_dict["Poker"] += 1
-                    if mood["mood"] == '4':
-                        mood_dict["Good"] += 1
-                    if mood["mood"] == '5':
-                        mood_dict["VeryGood"] += 1
+            response = requests.get(url, headers=headers)
+            data = response.json()
 
-                for mood in mood_dict.keys():
-                    print(f'{mood} : {mood_dict[mood]}')
-            else:
-                print(f"Failed to Load mood: {response.json()}")
-            input("Press Enter to Back to Menu...")
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            if response.status_code not in (200, 201):
+                print(f"❌ Failed to load mood: {data}")
+                return
 
-        input()
+            LogHelper.clear()
+            LogHelper.heading(f"{selected_datetime} Moods")
+
+            mood_dict = {
+                "Very Bad": 0,
+                "Bad": 0,
+                "Poker": 0,
+                "Good": 0,
+                "Very Good": 0
+            }
+
+            mood_mapping = {
+                "1": "Very Bad",
+                "2": "Bad",
+                "3": "Poker",
+                "4": "Good",
+                "5": "Very Good"
+            }
+
+            for mood in data.get("items", []):
+                mood_name = mood_mapping.get(mood.get("mood"))
+                if mood_name:
+                    mood_dict[mood_name] += 1
+
+            for mood, count in mood_dict.items():
+                print(f"{mood}: {count}")
+
+        except requests.RequestException as e:
+            print(f"❌ An error occurred: {e}")
+
+        input("Press Enter to return to the menu...")
