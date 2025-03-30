@@ -1,6 +1,10 @@
 import os
 
 class LogHelper:
+
+    @staticmethod
+    def is_dev_mode():
+        return os.getenv("ENVIRONMENT") == "development"
     @staticmethod
     def clear():
         os.system('cls' if os.name == 'nt' else 'clear')

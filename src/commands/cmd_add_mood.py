@@ -18,7 +18,7 @@ class AddMood(Command):
         print('3. Poker')
         print('4. Bad')
         print('5. Very Bad')
-        mood = input('\n Select your Current Mood (1-5) : ')
+        mood = input('\nSelect your Current Mood (1-5) : ')
 
         token = Auth().token
         user = Auth().record
@@ -36,7 +36,7 @@ class AddMood(Command):
             "user" : user["id"]
         }
 
-        print(f"Adding Mood '{mood}' with Token...")
+        print(f"\n \nPlease Wait...")
 
         try:
             response = requests.post(MOOD_API_URL, json=data, headers=headers)
@@ -44,5 +44,6 @@ class AddMood(Command):
                 print("Mood successfully added!")
             else:
                 print(f"Failed to add mood: {response.json()}")
+            input("Press Enter to Back to Menu...")
         except Exception as e:
             print(f"An error occurred: {e}")

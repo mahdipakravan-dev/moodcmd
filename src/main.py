@@ -18,7 +18,7 @@ def main():
         LogHelper.menu()
         choice = input("Enter your choice : ")
 
-        if choice == 'quit':
+        if choice == '3':
             print('Exiting...')
             break
         invoker.execute_command(choice)

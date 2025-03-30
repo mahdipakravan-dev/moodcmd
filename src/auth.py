@@ -19,10 +19,15 @@ class Auth:
         LogHelper.greeting()
         self.username = input("Enter your username: ")
         self.password = input("Enter your password: ")
+        print("IS_DEV" , LogHelper.is_dev_mode())
+        if LogHelper.is_dev_mode():
+            self.username = os.getenv("SIMPLE_USERNAME")
+            self.password = os.getenv("SIMPLE_PASSWORD")
         self.login()
     
     def login(self) -> None:
-        print("Logging in..." , END_POINT)
+
+        print("Logging in..." , END_POINT , self.username , self.password)
         try:
             response = requests.post(END_POINT , {
                 "identity": self.username,
