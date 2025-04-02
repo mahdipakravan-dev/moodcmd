@@ -1,6 +1,7 @@
 import requests
 import os
 from log_helper import LogHelper
+from filesys import FileSys
 
 END_POINT = f'{os.getenv("END_POINT")}collections/users/auth-with-password'
 
@@ -41,6 +42,8 @@ class Auth:
             self.token = data["token"]
             self.record = data["record"]
             print('You have logged in...' , self.token)
+            fileSys = FileSys(data["record"]["username"])
+            fileSys.write("------LOGGED_IN-----------")
         except Exception as e:
             print(f"Error occurred while fetching news: {e}")
         
